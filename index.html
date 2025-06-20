@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>翻水</title>
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700&display=swap');
+
+* {
+font-family: 'Noto Serif TC', 'cwTeXHei', 'cwTeXFangSong', 'cwTeXKai', 'cwTeXMing', 'PingFang TC', 'Microsoft JhengHei', serif;
+}
+
+.gradient-bg {
+background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.glass-card {
+background: rgba(255, 255, 255, 0.95);
+backdrop-filter: blur(10px);
+border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.essay-output {
+line-height: 1.8;
+letter-spacing: 0.02em;
+}
+
+.loading-dots {
+display: inline-block;
+}
+
+.loading-dots::after {
+content: '';
+animation: dots 1.5s steps(5, end) infinite;
+}
+
+@keyframes dots {
+0%, 20% { content: ''; }
+40% { content: '.'; }
+60% { content: '..'; }
+80%, 100% { content: '...'; }
+}
+
+.fade-in {
+animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+from { opacity: 0; transform: translateY(20px); }
+to { opacity: 1; transform: translateY(0); }
+}
+
+.btn-primary {
+background: linear-gradient(45deg, #4a5568, #2d3748);
+transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+background: linear-gradient(45deg, #2d3748, #1a202c);
+transform: translateY(-2px);
+box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+.input-focus {
+transition: all 0.3s ease;
+}
+
+.input-focus:focus {
+border-color: #4a5568;
+box-shadow: 0 0 0 3px rgba(74, 85, 104, 0.1);
+}
+
+@media print {
+body { margin: 0; padding: 20px; }
+.no-print { display: none !important; }
+.print-optimize { page-break-inside: avoid; }
+}
+</style>
+</head>
+<body class="min-h-screen bg-gray-50">
+<div class="container mx-auto px-4 py-8 max-w-6xl">
+<!-- Header -->
+<div class="text-center mb-8">
+<h1 class="text-4xl font-bold text-gray-800 mb-2">
+<i class="fas fa-feather-alt mr-3 text-gray-600"></i>
+翻水
+</h1>
+
+</div>
+
+<!-- Input Section -->
+<div class="glass-card rounded-xl shadow-lg p-6 mb-8">
+<h2 class="text-2xl font-semibold text-gray-800 mb-4">
+<i class="fas fa-edit mr-2 text-gray-600"></i>
+議論文題目輸入
+</h2>
+
+<div class="mb-6">
+<label for="essayTopic" class="block text-sm font-medium text-gray-700 mb-2">
+請輸入議論文題目：
+</label>
+<textarea 
+id="essayTopic" 
+rows="3" 
+class="input-focus w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none resize-none"
+placeholder="例如：論得失"
+></textarea>
+</div>
+
+
+
+<button 
+id="generateBtn" 
+class="btn-primary w-full py-3 px-6 text-white font-semibold rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+>
+<i class="fas fa-magic mr-2"></i>
+<span id="btnText">生成議論文</span>
+</button>
+
+<div class="mt-4 text-sm text-gray-600">
+<i class="fas fa-info-circle mr-2"></i>
+系統將根據DSE評分標準生成約1200-1300字的議論文
+</div>
+</div>
+
+<!-- Essay Output Section -->
+<div class="glass-card rounded-xl shadow-lg p-6 mb-8">
+<div class="flex justify-between items-center mb-4">
+<h2 class="text-2xl font-semibold text-gray-800">
+<i class="fas fa-file-alt mr-2 text-gray-600"></i>
+生成結果
+</h2>
+<div class="text-sm text-gray-600">
+字數：<span id="charCount" class="font-semibold text-gray-800">0</span>
+</div>
+</div>
+
+<div 
+id="essayOutput" 
+class="essay-output bg-white border border-gray-200 rounded-lg p-6 text-gray-700 leading-relaxed"
+>
+<div class="text-center text-gray-400 pt-20">
+<i class="fas fa-pencil-alt text-4xl mb-4"></i>
+<p>請輸入議論文題目後點擊「生成議論文」開始創作</p>
+</div>
+</div>
+</div>
+
+<!-- Features Section -->
+<div class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="glass-card rounded-xl p-6 text-center">
+<div class="text-3xl mb-4">
+<i class="fas fa-brain text-gray-600"></i>
+</div>
+<h3 class="font-semibold text-gray-800 mb-2">智能分析</h3>
+<p class="text-gray-600 text-sm">運用先進AI技術分析題目</p>
+</div>
+
+<div class="glass-card rounded-xl p-6 text-center">
+<div class="text-3xl mb-4">
+<i class="fas fa-balance-scale text-gray-600"></i>
+</div>
+<h3 class="font-semibold text-gray-800 mb-2">結構嚴謹</h3>
+<p class="text-gray-600 text-sm">採用前中後三段式結構謀篇</p>
+</div>
+
+<div class="glass-card rounded-xl p-6 text-center">
+<div class="text-3xl mb-4">
+<i class="fas fa-star text-gray-600"></i>
+</div>
+<h3 class="font-semibold text-gray-800 mb-2">高質量輸出</h3>
+<p class="text-gray-600 text-sm">生成符合DSE評分標準的優質議論文</p>
+</div>
+</div>
+
+<!-- Footer -->
+<div class="mt-12 text-center text-gray-500 text-sm">
+<p>© 2025 陳冠健</p>
+</div>
+</div>
+
+<script>
+const API_URL = "https://chatapi.akash.network/api/v1/chat/completions";
+const MODEL = "DeepSeek-R1-0528";
+const API_KEY = "sk-7Zc--KPcXgJTpuSHXsVDWQ";
+
+const ARGUMENTATIVE_SYSTEM_PROMPT = `你是一個專業的DSE中文議論文作家。請根據以下完整指令生成高質量的議論文：
+[目標] 請根據以下所有詳細要求，根據《論得失》的範文精髓，生成一篇完整的、具有深度和說服力、約1300個中文字符的DSE議論文。文章須緊扣給定題目，內容深刻、論證嚴謹，並嚴格遵守所有議論文寫作規範。 
+
+[文章類型] 議論文
+
+[核心結構：前中後三段式結構] 你的文章必須清晰地呈現「前、中、後」三大結構部分，並確保每個部分都與文章主題緊密扣聯。
+
+主題： [請在此處填入您希望探討的議論文主題，例如「談論得失」、「面對不同意見，哪種態度較為理想？」、「談虛偽」、「談憤怒」等]
+
+議論文結構與內容要求：
+1.
+開端 (「前」)：1
+◦
+概念引入及背景： 從普遍現象、人類本質、或相關概念的背景出發，為主題奠定基礎。這部分應能引起讀者思考，並點出主題的重要性或爭議性1。
+◦
+現實觀察/例子： 結合當代社會現象、歷史事例、或生活中的具體例子，具體化主題在現實中的表現1。
+◦
+觀點衝突/駁論鋪墊： 點出針對主題的常見觀點、誤解，或是不同立場的衝突，為後文的深入論述和反駁作鋪墊1。
+◦
+參考《論得失》的開頭寫法： 該範文從「每個人呱呱墮地時，都是手空空，無一物」的普遍人性引入，隨後帶出現實中追名逐利的現象，並隱含對人類未汲取歷史教訓的批判，為全文的辯證思考埋下伏筆。
+2.
+主體 (「中」)：
+◦
+分層論述： 採用「分類論述」或「分拆論述」的方式，多角度、有層次地深入剖析主題。請至少包含兩個主要論點，每個論點獨立成段，闡述一個核心子觀點。
+◦
+三何論述 (WHAT, WHY, HOW)： 每個論點都應清晰闡明「是什麼」（WHAT，該觀點的內容）、探討「為什麼」（WHY，該觀點成立的原因或其影響）以及提供相關的「如何體現/影響」（HOW，具體例子或詳細說明）的例證或分析，以增強論證的說服力。
+◦
+舉例論證： 運用歷史人物、文學典故、哲學思想、名言警句或具體事件作為例子，有效支撐論點。論證應具體、詳盡，並與論點緊密結合。例子數量不宜太多，論證必須深入。
+◦
+參考《論得失》的主體寫法：
+▪
+論點一 (執著於得失的愚昧)： 以「塵寰的一切名利都不過是虛無的鏡花水月」為核心，運用秦王、曹孟德等歷史人物的功績最終歸於虛無的例子，有力論證了執著於一時得失的無益與愚昧。此處體現了對「得」的「分拆論述」。
+▪
+論點二 (得失的相對性與辯證)： 以「得與失只是相對的概念，任何執著都是狭隘的偏見」為核心，運用塞翁失馬、樗樹（無用之用）、杜甫（「詩窮而後工」）等正面例子，闡述表面之「失」如何成就深層之「得」。同時，也運用楊修（恃才放曠）和老子（「兵強則滅」）的反面例子，說明表面之「得」亦可能導致「失」。此處展現了精妙的「分類論述」與「三何論述」。
+3.
+結尾 (「後」)：1
+◦
+例外情況/其他視角： 探討主題可能存在的例外情況，或從不同的維度提供補充性的看法，使論證更全面、嚴謹，避免絕對化1。
+◦
+方法/策略： 針對主題提出實際的行動建議、轉變觀念的方法、或啟示，為讀者提供解決問題的思路或人生智慧1。
+◦
+昇華主旨： 總結全文，並將主題昇華到更深層次的哲學、文化或人生思考，引發讀者共鳴，使文章餘味悠長。可以採用富有意象的比喻或發人深省的提問1。
+◦
+參考《論得失》的結尾寫法：
+▪
+方法/哲學思考： 以蘇軾為例，闡述「參悟變幻原是永恆」是看透得失的關鍵，並點出「與變幻常在」的豁達境界。
+▪
+其他視角/方法： 考慮到並非人人皆有超然悟性，範文提供了「相信命運」和「努力奮鬥」這兩種現實可行的方法，並引用徐志摩、泰戈爾、村上春樹的語錄加以佐證。
+▪
+呼應及昇華： 最後以「花必然零落，但化作春泥更護花」的詩意比喻，將「今日之失，便是明日之得」的辯證關係推向高潮，並以提問「你，覺悟了嗎？」作結，引人深思。
+寫作風格要求：
+•
+語言： 繁體中文，以白話為主，不要寫得像文言文一樣，用詞精煉，富有文學性和哲理性，可適當加入比喻。
+•
+論證： 邏輯清晰，層次分明，說理透徹，具有強烈說服力。
+•
+深度： 不僅停留在表面現象，能深入挖掘主題背後的文化、歷史、哲學內涵，展現批判性思維。
+
+[議論文範例參考] 請參考以下優秀議論文的風格和技巧：
+
+《論得失》
+每個人呱呱墮地時，都是手空空，無一物。然而，隨著人的年紀漸長，便開始追名逐利，講究「美酒跑車相機金錶」，到了「秒速捉得緊了，而皮膚竟偷偷鬆了」的時候，人才不禁幡然大悟：原來啊，人類從來沒有汲取歷史的教訓，仍然無法從名利的樊籠逃脫出去。
+其實，塵寰的一切名利都不過是虛無的鏡花水月，窮其一生汲汲營營只會徒勞無功。試憶想，多少風流人物的功績都在歷史洪流的沖刷下蕩然無存？秦王掃六合，虎視何雄哉，如今卻只賸得金棺寒灰，以及長埋在驪山的深土裏默然懺悔的靈魂；曹孟德亦雄霸一時，橫槊賦詩，卻只換來了汗青上一筆「奸雄」。即使功業多麼赫然，多麼輝煌，卻依然敵不過時間的淘洗，所有成就都終將恍惚如虛幻的鏡花水月，可見執著於得失是何其愚昧，何其不智。
+況且，得與失只是相對的概念，任何執著都是狹隘的偏見。所謂「福兮禍之所藏，禍兮福之所倚」，一如塞翁失馬，焉知非福？《逍遙遊》中臃腫彎曲的樗樹，立於塗而匠者不顧，但正因為其「無用」，才能成就其「用」，得以全養天年。表面是「失」，但於樗樹而言，卻可稱得上「得」。又如杜甫，一生懷才不遇，顛沛流離，仿佛是一沙鷗恆年飄泊於天地間，但宋代歐陽修曾謂「詩窮而後工」，指文人窮困不得志，才能寫出動人肺腑之作。後人尊杜甫為「詩史」和「詩聖」，然而若天不挫其銳志，不教他勞筋骨、餓體膚，即使杜甫能妙筆生花，有翻水成詩之才，亦不免淪為無病呻吟，日日暢詠風花雪月的小詩人，又如何寫得出《北征》等悲天憫人、震古爍今之作？反之，世人眼中的「得」全然是「得」嗎？不然。楊修才華橫溢，卻因此恃才放曠，不得善終。老子又曰：「兵強則滅。」軍隊強大，卻會成為眾矢之的，遭到圍殲。可見，得與失是一體兩面，執著於其中一者，都無異於管中窺豹，瞎子摸象，必不得見事物的真象和全貌。
+蓋將自其變者而觀之，則天地曾不能以一瞬；自其不變者而觀之，則物與我皆無盡也，而又何羨乎？
+蘇軾的《前赤壁賦》或可為本文落下文學性和哲學性的註腳。要真正看透得失，便須參悟變幻原是永恆。月有陰晴圓缺，人有悲歡離合。既然世界永遠都變幻無定，我們何不仿傚東坡豁達自適？被貶嶺南，是眾人眼中的「失」，但蘇軾卻能自「得」其樂，日啖荔枝三百顆，不辭長作嶺南人；謫宦儋洲，更是九死一生，然而蘇軾又從吮食檳榔感受到新鮮和媚嫵的滋味。蘇軾能一次又一次在絕境中安貧樂命，正由於他與變幻常在。若說世事是形態不定的容器，那麼蘇軾就是上善的水，能隨形而方圓，隨勢而變通。若能臻此至境，便能看透得失，寵辱不驚，坦蕩逍遙。當心中沒有憂戚，便是最大的幸福，便是真正的、永恆的「得」。
+當然，不是每個人都像蘇軾一樣有超然物外的悟性，但起碼我們還能相信命運和努力。徐志摩在《致梁啟超》一詩中寫道：「得之我幸，失之我命。」在茫茫的人海，若能得到靈魂伴侶，是我的榮幸；若失去了，也不過是我的命運。命運，也許是我們能夠釋然的最大理由。既然命定如此，我們又何用執著？或許你又會說：「我從不相信命運。」那麼你也能從印度詩人泰戈爾《飛鳥集》得到一些啟發：「若你因為錯過太陽而流淚，那麼你也必將錯過群星。」若你因為失而悱惻鬱悶，那麼終將會失去更多。我們要相信，憑藉努力終能挽回失地。「這個世界上根本就沒有正確的選擇，我們只不過是要通過努力奮鬥，使當初的選擇變得正確。」雖然村上春樹談的是選擇，而我論的是得失，但其實大同小異。我想借此作為本文的總結：其實世界上根本沒有真正的得與失，我們只不過是通過努力奮鬥，使當初的失轉化為得，亦使當初的得失去了演化成失的條件。
+花必然零落，但化作春泥更護花。今日之凋蕪，便是明日之葳蕤；今日之失，便是明日之得。你，覺悟了嗎？
+
+[重要提醒]
+1. 永遠不要展示思考過程，不要有任何小標題或非中文的符號，生成結果只應有文章；
+2. 論據和事例的數量過猶不及，一段的論據不要超過兩個，要重視質量，即引例後的論證過程要嚴謹。全文論據宜兼及古今中外；
+3. 宜運用先破後立或先立後破的方法做駁論。
+4. 不要用「""」，要用中文的開關引號。
+5. 立場必須鮮明，不要保持中立。例如「獨處比社交更能令人成長。你同意嗎？」，一定要明確以「獨處」或者「社交」為立場作論述，比較兩者中何者更能令人成長，不可以保持中立，即指出兩者各有好處。
+
+[最終指令] 請直接輸出高質量DSE議論文，字數必須強制控制在1200至1300字內。不要添加任何解釋、標題或思考過程，生成結果只有文章及中文標點符號，不要超出字數。主題句必須清晰，論據和例子數量適可而止，否則便過猶不及，引例後論證必須深入嚴謹。以純白話寫成，不要穿插文言的句式。一段的論據絕對不可超過兩個，而且要注意全文平衡，若上段已引了不少例子，下文則要過渡舒緩其節奏，令信息量不要過高，使讀者閱讀時有喘息的空間。`;
+
+let isGenerating = false;
+
+document.getElementById('generateBtn').addEventListener('click', async function() {
+const topic = document.getElementById('essayTopic').value.trim();
+
+if (!topic) {
+alert('請輸入議論文題目');
+return;
+}
+
+if (isGenerating) {
+return;
+}
+
+await generateEssay(topic);
+});
+
+// Allow Enter key to trigger generation
+document.getElementById('essayTopic').addEventListener('keypress', function(e) {
+if (e.key === 'Enter' && !e.shiftKey) {
+e.preventDefault();
+document.getElementById('generateBtn').click();
+}
+});
+
+async function generateEssay(topic) {
+const generateBtn = document.getElementById('generateBtn');
+const btnText = document.getElementById('btnText');
+const essayOutput = document.getElementById('essayOutput');
+const charCount = document.getElementById('charCount');
+
+isGenerating = true;
+generateBtn.disabled = true;
+btnText.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>正在生成<span class="loading-dots"></span>';
+
+essayOutput.innerHTML = `
+<div class="text-center text-gray-500 pt-20">
+<i class="fas fa-hourglass-half text-4xl mb-4 animate-spin"></i>
+<p>AI正在創作中，請稍候...</p>
+<div class="mt-4 text-sm">
+正在運用前中後三段式結構生成高質量議論文
+</div>
+</div>
+`;
+
+try {
+// Generate essay
+const essayResponse = await fetch(API_URL, {
+method: 'POST',
+headers: {
+'Authorization': `Bearer ${API_KEY}`,
+'Content-Type': 'application/json',
+},
+body: JSON.stringify({
+model: MODEL,
+messages: [
+{
+role: "system",
+content: ARGUMENTATIVE_SYSTEM_PROMPT
+},
+{
+role: "user",
+content: `請根據題目「${topic}」生成一篇DSE議論文。`
+}
+],
+max_tokens: 64000,
+temperature: 0.8,
+top_p: 0.9
+})
+});
+
+if (!essayResponse.ok) {
+throw new Error(`API 請求失敗: ${essayResponse.status}`);
+}
+
+const essayData = await essayResponse.json();
+let essay = essayData.choices[0].message.content.trim();
+
+// Remove any thinking process tags or content
+essay = essay.replace(/<think>[\s\S]*?<\/think>/g, '');
+essay = essay.replace(/\[思考過程\][\s\S]*?\[\/思考過程\]/g, '');
+essay = essay.replace(/思考：[\s\S]*?(?=\n\n|\n[^\n]|$)/g, '');
+
+// Display the essay
+essayOutput.innerHTML = `<div class="fade-in print-optimize">${essay.replace(/\n/g, '<br><br>')}</div>`;
+
+// Update character count
+const charLength = essay.replace(/\s/g, '').length;
+charCount.textContent = charLength;
+
+// Scroll to output
+essayOutput.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+} catch (error) {
+console.error('生成失敗:', error);
+essayOutput.innerHTML = `
+<div class="text-center text-red-500 pt-20">
+<i class="fas fa-exclamation-triangle text-4xl mb-4"></i>
+<p class="font-semibold">生成失敗</p>
+<div class="mt-4 text-sm text-gray-600">
+${error.message || '請檢查網絡連接後重試'}
+</div>
+<button onclick="location.reload()" class="mt-4 px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors">
+重新整理頁面
+</button>
+</div>
+`;
+} finally {
+isGenerating = false;
+generateBtn.disabled = false;
+btnText.innerHTML = '<i class="fas fa-magic mr-2"></i>生成議論文';
+}
+}
+
+// Auto-resize textarea
+const textarea = document.getElementById('essayTopic');
+textarea.addEventListener('input', function() {
+this.style.height = 'auto';
+this.style.height = (this.scrollHeight) + 'px';
+});
+
+// Add some interactive effects
+document.addEventListener('DOMContentLoaded', function() {
+// Smooth scrolling for all internal links
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+anchor.addEventListener('click', function (e) {
+e.preventDefault();
+const target = document.querySelector(this.getAttribute('href'));
+if (target) {
+target.scrollIntoView({
+behavior: 'smooth',
+block: 'start'
+});
+}
+});
+});
+
+// Add subtle animations to cards
+const observer = new IntersectionObserver((entries) => {
+entries.forEach(entry => {
+if (entry.isIntersecting) {
+entry.target.style.opacity = '1';
+entry.target.style.transform = 'translateY(0)';
+}
+});
+});
+
+document.querySelectorAll('.glass-card').forEach(card => {
+card.style.opacity = '0';
+card.style.transform = 'translateY(20px)';
+card.style.transition = 'all 0.6s ease';
+observer.observe(card);
+});
+});
+</script>
+</body>
+</html>
