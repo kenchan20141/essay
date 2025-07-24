@@ -6,7 +6,9 @@
 <title>翻水</title>
 <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
-   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&display=swap" rel="stylesheet">
+
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&display=swap" rel="stylesheet">
+
 
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700&display=swap');
@@ -75,6 +77,44 @@ border-color: #4a5568;
 box-shadow: 0 0 0 3px rgba(74, 85, 104, 0.1);
 }
 
+.word-count-control button {
+background-color: #f1f5f9;
+border-radius: 50%;
+width: 36px;
+height: 36px;
+display: flex;
+align-items: center;
+justify-content: center;
+color: #4a5568;
+transition: all 0.2s ease;
+}
+.word-count-control button:hover {
+background-color: #e2e8f0;
+transform: scale(1.05);
+}
+.word-count-control button:active {
+background-color: #cbd5e1;
+}
+
+.btn-secondary {
+    background-color: #e2e8f0;
+    color: #4a5568;
+    transition: background-color 0.2s ease;
+}
+.btn-secondary:hover {
+    background-color: #cbd5e1;
+}
+
+.btn-danger {
+    background-color: #fef2f2;
+    color: #ef4444;
+    transition: background-color 0.2s ease;
+}
+.btn-danger:hover {
+    background-color: #fee2e2;
+}
+
+
 @media print {
 body { margin: 0; padding: 20px; }
 .no-print { display: none !important; }
@@ -112,6 +152,37 @@ placeholder="例如：論得失"
 ></textarea>
 </div>
 
+<!-- Word Count Setting -->
+<div class="mb-6">
+<label class="block text-sm font-medium text-gray-700 mb-2">
+字數設定：
+</label>
+<div class="word-count-control flex items-center justify-center space-x-6 bg-white border border-gray-300 rounded-lg p-3">
+<button id="decreaseBtn" aria-label="減少字數">
+<i class="fas fa-minus"></i>
+</button>
+<div class="text-center">
+<span id="wordCountDisplay" class="text-lg font-bold text-gray-800">1300</span>
+<span class="text-sm text-gray-600">字</span>
+</div>
+<button id="increaseBtn" aria-label="增加字數">
+<i class="fas fa-plus"></i>
+</button>
+</div>
+</div>
+
+<!-- Designated Arguments -->
+<div class="mb-6">
+<label class="block text-sm font-medium text-gray-700 mb-2">
+指定論據 (可選填)：
+</label>
+<div id="argumentsContainer" class="space-y-3">
+<!-- Argument inputs will be dynamically added here -->
+</div>
+<button id="addArgumentBtn" class="mt-3 py-2 px-4 text-sm font-semibold rounded-lg btn-secondary">
+<i class="fas fa-plus mr-2"></i>新增論據
+</button>
+</div>
 
 
 <button 
@@ -124,7 +195,7 @@ class="btn-primary w-full py-3 px-6 text-white font-semibold rounded-lg disabled
 
 <div class="mt-4 text-sm text-gray-600">
 <i class="fas fa-info-circle mr-2"></i>
-系統將根據DSE評分標準生成約1200-1300字的議論文
+系統將根據DSE評分標準生成議論文
 </div>
 </div>
 
@@ -313,6 +384,40 @@ essayOutput.innerHTML = `
 `;
 
 try {
+// Get new input values from the form
+const wordCount = document.getElementById('wordCountDisplay').textContent;
+const argumentInputs = document.querySelectorAll('.argument-input');
+const designatedArguments = Array.from(argumentInputs)
+.map(input => input.value.trim())
+.filter(val => val); // Filter out empty strings
+
+let userContent = `請根據題目「${topic}」生成一篇DSE議論文。`;
+
+// Construct additional instructions based on user input
+let additionalInstructions = [];
+
+if (wordCount) {
+additionalInstructions.push(`- **字數要求**：生成的文章字數必須嚴格遵從 ${wordCount} 字的設定，不可超出或少於太多。此為最高優先級指令。`);
+}
+
+if (designatedArguments.length > 0) {
+let argumentInstruction = `- **指定論據**：文章必須運用以下所有指定論據：${designatedArguments.join('、')}。請注意，每個指定論據在文中只可使用一次，不可重複。`;
+
+if (designatedArguments.length < 6) {
+argumentInstruction += " 此外，由於用家提供的論據不足六項，你必須額外加入其他你認為合適的新穎論據，以豐富文章內容，但不可與用家指定的論據重複。";
+}
+additionalInstructions.push(argumentInstruction);
+} else {
+// Add a note for the AI if no arguments are provided
+additionalInstructions.push("- **指定論據**：用家沒有提供指定論據，請你自由發揮，選用最適切的古今中外例子進行論證。");
+}
+
+
+// Append the additional instructions to the user prompt if there are any
+if (additionalInstructions.length > 0) {
+userContent += `\n\n[額外寫作指令]\n請嚴格遵循以下所有指令：\n${additionalInstructions.join('\n')}`;
+}
+
 // Generate essay
 const essayResponse = await fetch(API_URL, {
 method: 'POST',
@@ -329,7 +434,7 @@ content: ARGUMENTATIVE_SYSTEM_PROMPT
 },
 {
 role: "user",
-content: `請根據題目「${topic}」生成一篇DSE議論文。`
+content: userContent
 }
 ],
 max_tokens: 64000,
@@ -390,6 +495,64 @@ this.style.height = (this.scrollHeight) + 'px';
 
 // Add some interactive effects
 document.addEventListener('DOMContentLoaded', function() {
+// Word Count Control Logic
+const decreaseBtn = document.getElementById('decreaseBtn');
+const increaseBtn = document.getElementById('increaseBtn');
+const wordCountDisplay = document.getElementById('wordCountDisplay');
+let currentWordCount = 1300;
+
+const updateWordCountDisplay = () => {
+wordCountDisplay.textContent = currentWordCount;
+};
+
+decreaseBtn.addEventListener('click', () => {
+if (currentWordCount > 500) { // Set a minimum limit
+currentWordCount -= 100;
+updateWordCountDisplay();
+}
+});
+
+increaseBtn.addEventListener('click', () => {
+if (currentWordCount < 3000) { // Set a maximum limit
+currentWordCount += 100;
+updateWordCountDisplay();
+}
+});
+
+// Designated Arguments Logic
+const argumentsContainer = document.getElementById('argumentsContainer');
+const addArgumentBtn = document.getElementById('addArgumentBtn');
+
+const createArgumentInput = () => {
+const inputWrapper = document.createElement('div');
+inputWrapper.className = 'flex items-center space-x-2';
+
+const newInput = document.createElement('input');
+newInput.type = 'text';
+newInput.className = 'argument-input input-focus w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none';
+newInput.placeholder = '例如：蘇軾';
+inputWrapper.appendChild(newInput);
+
+const removeBtn = document.createElement('button');
+removeBtn.className = 'btn-danger flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-lg';
+removeBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+removeBtn.ariaLabel = '刪除論據';
+removeBtn.onclick = () => {
+inputWrapper.remove();
+};
+inputWrapper.appendChild(removeBtn);
+
+argumentsContainer.appendChild(inputWrapper);
+};
+
+addArgumentBtn.addEventListener('click', createArgumentInput);
+
+// Initialize with 3 argument inputs
+createArgumentInput();
+createArgumentInput();
+createArgumentInput();
+
+
 // Smooth scrolling for all internal links
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 anchor.addEventListener('click', function (e) {
@@ -420,6 +583,9 @@ card.style.transform = 'translateY(20px)';
 card.style.transition = 'all 0.6s ease';
 observer.observe(card);
 });
+
+// Initialize display
+updateWordCountDisplay();
 });
 </script>
 </body>
