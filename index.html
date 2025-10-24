@@ -424,11 +424,11 @@
                     <label>選擇模型</label>
                      <div class="style-selector">
                         <label>
-                            <input type="radio" name="model" value="DeepSeek-V3-1" checked>
+                            <input type="radio" name="model" value="openai-large" checked>
                             <span>魚木</span>
                         </label>
                         <label>
-                            <input type="radio" name="model" value="Qwen3-235B-A22B-Instruct-2507-FP8">
+                            <input type="radio" name="model" value="openai-large">
                             <span>水心</span>
                         </label>
                     </div>
@@ -603,8 +603,8 @@
             const outputWordCount = document.getElementById('output-word-count');
             const copyBtn = document.getElementById('copy-btn');
             
-            const API_URL = "https://chatapi.akash.network/api/v1/chat/completions";
-            const API_KEY = "sk-ugZDzju3AbV2QeJS1Y415Q";
+            const API_URL = "https://text.pollinations.ai/openai";
+            const API_KEY = "Jeq-UCxbpvrqUEzN";
             
             const originalCopyIcon = `<svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 0 24 24" width="20px"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-5zm0 16H8V7h11v14z"/></svg>`;
             copyBtn.innerHTML = originalCopyIcon;
